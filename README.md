@@ -2,7 +2,7 @@
 
 A powerful, production-ready tool to download entire websites for offline viewing. Built with **React** and **Golang**, featuring real-time progress tracking, concurrent downloads, and intelligent asset extraction.
 
-![Website Downloader Interface](file:///C:/Users/Sagar%20Shinde/.gemini/antigravity/artifacts/app_interface.webp)
+<!-- ![Website Downloader Interface](docs/screenshot.png) -->
 
 ## ✨ Features
 
@@ -33,7 +33,7 @@ A powerful, production-ready tool to download entire websites for offline viewin
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/website-downloader.git
+git clone https://github.com/sagarinnovate/website-downloader.git
 cd website-downloader
 ```
 
@@ -259,9 +259,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 If you encounter any issues or have questions:
-- 🐛 [Report a Bug](https://github.com/yourusername/website-downloader/issues)
-- 💡 [Request a Feature](https://github.com/yourusername/website-downloader/issues)
-- 📧 Email: your.email@example.com
+- 🐛 [Report a Bug](https://github.com/sagarinnovate/website-downloader/issues)
+- 💡 [Request a Feature](https://github.com/sagarinnovate/website-downloader/issues)
+- 📧 GitHub: [@sagarinnovate](https://github.com/sagarinnovate)
 
 ## 🌟 Star History
 
@@ -269,4 +269,4 @@ If you find this project useful, please consider giving it a star! ⭐
 
 ---
 
-**Made with 💙 by [Your Name]**
+**Made with 💙 by [Sagar Shinde](https://github.com/sagarinnovate)**
