@@ -1,0 +1,36 @@
+# Backend
+backend/temp/
+backend/downloads/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+backend/go.work
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Artifacts (internal)
+.gemini/
+*.resolved
