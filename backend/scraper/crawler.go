@@ -28,10 +28,23 @@ type Crawler struct {
 	mutex            sync.RWMutex
 	client           *http.Client
 	workDir          string
+	mode             string // "static" or "browser"
 }
 
 // NewCrawler creates a new crawler instance
-func NewCrawler(startURL string, config *models.Config, workDir string) (*Crawler, error) {
+func NewCrawler(startURL string, config *models.Config, workDir string, mode string) (*Crawler, error) {
+	// Default to static mode if not specified
+	if mode == "" {
+		mode = "static"
+	}
+	
+	// Validate mode
+	if mode != "static" && mode != "browser" {
+		return nil, fmt.Errorf("invalid mode: %s (must be 'static' or 'browser')", mode)
+	}
+
+	utils.LogInfo("Initializing crawler in %s mode", mode)
+
 	// Validate URL
 	if !utils.IsValidURL(startURL) {
 		return nil, fmt.Errorf("invalid URL: %s", startURL)
@@ -72,6 +85,7 @@ func NewCrawler(startURL string, config *models.Config, workDir string) (*Crawle
 		totalSize:        0,
 		client:           client,
 		workDir:          workDir,
+		mode:             mode,
 	}
 
 	return crawler, nil
@@ -118,22 +132,37 @@ func (c *Crawler) Crawl(progressCallback func(update models.ProgressUpdate)) err
 
 // processPage fetches and processes a single page
 func (c *Crawler) processPage(pageURL string, depth int) error {
-	// Fetch the page
-	resp, err := c.client.Get(pageURL)
-	if err != nil {
-		return fmt.Errorf("failed to fetch: %w", err)
-	}
-	defer resp.Body.Close()
+	var body []byte
+	var err error
 
-	// Check status code
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %d", resp.StatusCode)
-	}
+	// Fetch using appropriate mode
+	if c.mode == "browser" {
+		// Use headless browser for SPAs
+		browserCrawler, err := NewBrowserCrawler(c.baseURL, c.config)
+		if err != nil {
+			return fmt.Errorf("failed to initialize browser: %w", err)
+		}
+		
+		body, err = browserCrawler.FetchPage(pageURL)
+		if err != nil {
+			return fmt.Errorf("browser fetch failed: %w", err)
+		}
+	} else {
+		// Use HTTP client for static sites (fast mode)
+		resp, err := c.client.Get(pageURL)
+		if err != nil {
+			return fmt.Errorf("failed to fetch: %w", err)
+		}
+		defer resp.Body.Close()
 
-	// Read body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read body: %w", err)
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("bad status: %d", resp.StatusCode)
+		}
+
+		body, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read body: %w", err)
+		}
 	}
 
 	// Update total size
@@ -142,11 +171,11 @@ func (c *Crawler) processPage(pageURL string, depth int) error {
 	c.downloadedPages = append(c.downloadedPages, pageURL)
 	c.mutex.Unlock()
 
-	// Determine content type
-	contentType := resp.Header.Get("Content-Type")
-
+	// Determine if content is HTML (check for HTML tags in content)
+	isHTML := strings.Contains(string(body), "<html") || strings.Contains(string(body), "<!DOCTYPE")
+	
 	// If it's HTML, parse and extract links
-	if strings.Contains(contentType, "text/html") {
+	if isHTML {
 		links, assets, err := c.extractLinksAndAssets(pageURL, body)
 		if err != nil {
 			utils.LogError("Failed to extract links from %s: %v", pageURL, err)
@@ -160,12 +189,24 @@ func (c *Crawler) processPage(pageURL string, depth int) error {
 				c.enqueueAsset(asset)
 			}
 		}
-	} else if strings.Contains(contentType, "text/css") || strings.HasSuffix(pageURL, ".css") {
+
+		// Rewrite links to be relative for offline viewing
+		rewrittenBody, err := RewriteLinks(body, c.baseURL, pageURL)
+		if err != nil {
+			utils.LogError("Failed to rewrite links for %s: %v", pageURL, err)
+			// Continue with original body if rewriting fails
+		} else {
+			body = rewrittenBody
+			utils.LogInfo("Rewrote links for %s", pageURL)
+		}
+	} else if strings.HasSuffix(pageURL, ".css") {
 		// Parse CSS and extract assets (fonts, images, etc.)
 		cssAssets := c.extractCSSAssets(pageURL, body)
 		for _, asset := range cssAssets {
 			c.enqueueAsset(asset)
 		}
+		
+		// TODO: Rewrite CSS URLs too? (For now, relative paths in CSS usually work if assets are downloaded relative to CSS)
 	}
 
 	// Save the file
@@ -210,7 +251,8 @@ func (c *Crawler) extractLinksAndAssets(baseURL string, htmlContent []byte) ([]s
 				for _, attr := range n.Attr {
 					if attr.Key == "href" {
 						resolvedURL, err := utils.ResolveURL(baseURL, attr.Val)
-						if err == nil && utils.IsSameDomain(c.baseURL, resolvedURL) {
+						if err == nil {
+							// Allow assets from any domain
 							assets = append(assets, resolvedURL)
 						}
 					}
@@ -220,7 +262,8 @@ func (c *Crawler) extractLinksAndAssets(baseURL string, htmlContent []byte) ([]s
 				for _, attr := range n.Attr {
 					if attr.Key == "src" {
 						resolvedURL, err := utils.ResolveURL(baseURL, attr.Val)
-						if err == nil && utils.IsSameDomain(c.baseURL, resolvedURL) {
+						if err == nil {
+							// Allow assets from any domain
 							assets = append(assets, resolvedURL)
 						}
 					}
@@ -230,7 +273,8 @@ func (c *Crawler) extractLinksAndAssets(baseURL string, htmlContent []byte) ([]s
 				for _, attr := range n.Attr {
 					if attr.Key == "src" {
 						resolvedURL, err := utils.ResolveURL(baseURL, attr.Val)
-						if err == nil && utils.IsSameDomain(c.baseURL, resolvedURL) {
+						if err == nil {
+							// Allow assets from any domain
 							assets = append(assets, resolvedURL)
 						}
 					}
@@ -401,9 +445,11 @@ func (c *Crawler) extractCSSAssets(cssURL string, cssContent []byte) []string {
 			
 			// Resolve URL
 			resolvedURL, err := utils.ResolveURL(cssURL, assetURL)
-			if err != nil || !utils.IsSameDomain(c.baseURL, resolvedURL) {
+			if err != nil {
 				continue
 			}
+			
+			// Allow assets from any domain
 			
 			// Add to assets if not seen before
 			if !seenAssets[resolvedURL] {

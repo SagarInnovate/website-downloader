@@ -4,7 +4,8 @@ import "time"
 
 // ScrapeRequest represents the incoming scrape job request
 type ScrapeRequest struct {
-	URL string `json:"url" binding:"required"`
+	URL  string `json:"url" binding:"required"`
+	Mode string `json:"mode"` // "static" (default) or "browser" for SPA support
 }
 
 // ScrapeResponse represents the API response after starting a scrape job

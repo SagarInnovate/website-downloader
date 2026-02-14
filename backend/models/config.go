@@ -16,6 +16,8 @@ type Config struct {
 	TempDir           string   `json:"tempDir"`
 	OutputDir         string   `json:"outputDir"`
 	UserAgent         string   `json:"userAgent"`
+	BrowserWaitTime   int      `json:"browserWaitTime"`   // Milliseconds to wait for JS rendering (browser mode)
+	BrowserTimeout    int      `json:"browserTimeout"`    // Seconds timeout for browser mode pages
 }
 
 // DefaultConfig returns a default configuration
@@ -32,9 +34,11 @@ func DefaultConfig() *Config {
 			".woff", ".woff2", ".ttf", ".eot",
 			".pdf", ".json", ".xml",
 		},
-		TempDir:   "./temp",
-		OutputDir: "./downloads",
-		UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+		TempDir:         "./temp",
+		OutputDir:       "./downloads",
+		UserAgent:       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+		BrowserWaitTime: 3000, // 3 seconds for JS to render
+		BrowserTimeout:  30,   // 30 seconds max per page
 	}
 }
 

@@ -24,43 +24,50 @@ const Progress = ({ status }) => {
     return (
         <div className="progress-container">
             <div className="progress-header">
-                <h3>Downloading Website...</h3>
+                <h3>
+                    <div className="spinner-pulse"></div>
+                    Archiving in Progress
+                </h3>
             </div>
 
-            <div className="progress-bar-wrapper">
-                <div className="progress-bar">
+            <div className="progress-bar-container">
+                <div className="progress-bar-bg">
                     <div
                         className="progress-bar-fill"
                         style={{ width: `${progress || 0}%` }}
-                    >
-                        <span className="progress-text">{progress || 0}%</span>
-                    </div>
+                    ></div>
+                </div>
+                <div className="progress-meta">
+                    <span>Processing resources...</span>
+                    <span className="progress-percent">{Math.round(progress || 0)}%</span>
                 </div>
             </div>
 
             <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-label">Pages Discovered</div>
+                <div className="stat-item">
+                    <div className="stat-label">Pages Found</div>
                     <div className="stat-value">{pagesDiscovered || 0}</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-label">Pages Downloaded</div>
+                <div className="stat-item">
+                    <div className="stat-label">Downloaded</div>
                     <div className="stat-value">{pagesDownloaded || 0}</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-label">Assets Downloaded</div>
+                <div className="stat-item">
+                    <div className="stat-label">Assets</div>
                     <div className="stat-value">{assetsDownloaded || 0}</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-label">Total Size</div>
+                <div className="stat-item">
+                    <div className="stat-label">Size</div>
                     <div className="stat-value">{formatSize(totalSize)}</div>
                 </div>
             </div>
 
             {currentPage && (
-                <div className="current-page">
-                    <span className="current-page-label">Currently processing:</span>
-                    <span className="current-page-url">{currentPage}</span>
+                <div className="current-status">
+                    <svg className="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
+                    </svg>
+                    <span className="status-text">{currentPage}</span>
                 </div>
             )}
         </div>

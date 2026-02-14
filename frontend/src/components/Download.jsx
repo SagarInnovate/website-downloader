@@ -8,28 +8,30 @@ const Download = ({ jobId, onNewDownload }) => {
 
     return (
         <div className="download-container">
-            <div className="success-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+            <div className="success-icon-wrapper">
+                <div className="success-ring"></div>
+                <div className="success-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </div>
             </div>
 
-            <h2 className="success-title">Download Complete!</h2>
+            <h2 className="success-title">Archive Ready</h2>
             <p className="success-message">
-                Your website has been successfully downloaded and packaged.
+                Your website has been successfully captured. All assets, scripts, and styles are packaged and ready for offline use.
             </p>
 
             <div className="button-group">
                 <button onClick={handleDownload} className="download-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="btn-icon">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="btn-icon" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     Download ZIP
                 </button>
 
                 <button onClick={onNewDownload} className="new-download-btn">
-                    Download Another Website
+                    Archive Another
                 </button>
             </div>
         </div>

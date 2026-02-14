@@ -27,12 +27,12 @@ type ProgressBroadcastFunc func(jobID string, update models.ProgressUpdate)
 
 // StartJob starts a new scraping job
 func StartJob(
-	jobID, url string,
+	jobID, url, mode string,
 	config *models.Config,
 	updateStatus StatusUpdateFunc,
 	broadcastProgress ProgressBroadcastFunc,
 ) {
-	utils.LogInfo("Starting job %s for URL: %s", jobID, url)
+	utils.LogInfo("Starting job %s for URL: %s (mode: %s)", jobID, url, mode)
 
 	// Create work directory
 	workDir := filepath.Join(config.TempDir, jobID)
@@ -60,8 +60,8 @@ func StartJob(
 	// Send initial progress
 	sendProgressUpdate(jobID, "progress", status, "Starting download...", broadcastProgress)
 
-	// Create crawler
-	crawler, err := NewCrawler(url, config, workDir)
+	// Create crawler with mode
+	crawler, err := NewCrawler(url, config, workDir, mode)
 	if err != nil {
 		updateJobError(jobID, fmt.Sprintf("Failed to create crawler: %v", err), updateStatus, broadcastProgress)
 		return

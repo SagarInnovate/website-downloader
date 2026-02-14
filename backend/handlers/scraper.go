@@ -29,6 +29,12 @@ func StartScrapeHandler(c *gin.Context) {
 	// Generate unique job ID
 	jobID := uuid.New().String()
 
+	// Default to static mode if not specified
+	mode := req.Mode
+	if mode == "" {
+		mode = "static"
+	}
+
 	// Initialize job status
 	jobStatus := &models.JobStatus{
 		JobID:     jobID,
@@ -51,6 +57,7 @@ func StartScrapeHandler(c *gin.Context) {
 	go scraper.StartJob(
 		jobID,
 		req.URL,
+		mode, // Pass mode to job
 		config,
 		UpdateJobStatus,
 		BroadcastProgress,

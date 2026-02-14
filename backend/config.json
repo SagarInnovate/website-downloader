@@ -29,5 +29,7 @@
   ],
   "tempDir": "./temp",
   "outputDir": "./downloads",
-  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+  "browserWaitTime": 3000,
+  "browserTimeout": 30
 }

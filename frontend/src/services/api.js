@@ -5,8 +5,8 @@ const API_BASE_URL = '/api';
 
 export const api = {
     // Start a new scraping job
-    startScrape: async (url) => {
-        const response = await axios.post(`${API_BASE_URL}/scrape`, { url });
+    startScrape: async (url, mode = 'static') => {
+        const response = await axios.post(`${API_BASE_URL}/scrape`, { url, mode });
         return response.data;
     },
 

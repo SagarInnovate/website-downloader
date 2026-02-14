@@ -1,141 +1,201 @@
 .progress-container {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 2rem;
-    margin: 2rem auto;
-    max-width: 800px;
-    backdrop-filter: blur(10px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    box-shadow: var(--shadow);
+    animation: fadeIn 0.4s ease-out;
+}
+
+.progress-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
 }
 
 .progress-header h3 {
-    margin: 0 0 1.5rem 0;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 600;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
 }
 
-.progress-bar-wrapper {
-    margin-bottom: 2rem;
+.spinner-pulse {
+    width: 12px;
+    height: 12px;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+    animation: pulse-ring 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
 
-.progress-bar {
-    width: 100%;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
+/* Progress Bar */
+.progress-bar-container {
+    margin-bottom: 3rem;
+}
+
+.progress-bar-bg {
+    height: 12px;
+    background: var(--background);
+    border-radius: 99px;
     overflow: hidden;
     position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border);
 }
 
 .progress-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
-    transition: width 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: linear-gradient(90deg, var(--primary) 0%, #4338ca 100%);
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    overflow: hidden;
 }
 
-.progress-bar-fill::before {
+.progress-bar-fill::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    animation: shimmer 2s infinite;
+    right: 0;
+    background-image: linear-gradient(45deg,
+            rgba(255, 255, 255, 0.15) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.15) 50%,
+            rgba(255, 255, 255, 0.15) 75%,
+            transparent 75%,
+            transparent);
+    background-size: 1rem 1rem;
+    animation: move-stripes 1s linear infinite;
 }
 
-@keyframes shimmer {
-    0% {
-        transform: translateX(-100%);
-    }
-
-    100% {
-        transform: translateX(100%);
-    }
-}
-
-.progress-text {
-    font-weight: 600;
+.progress-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
     font-size: 0.875rem;
-    z-index: 1;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
+.progress-percent {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* Stats Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-.stat-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 1rem;
-    text-align: center;
-    transition: all 0.3s ease;
+.stat-item {
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: 1px solid var(--border);
 }
 
-.stat-card:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateY(-2px);
+.stat-item:last-child {
+    border-right: none;
 }
 
 .stat-label {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    font-weight: 600;
     margin-bottom: 0.5rem;
 }
 
 .stat-value {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--text);
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
 }
 
-.current-page {
-    background: rgba(99, 102, 241, 0.1);
-    border-left: 3px solid #6366f1;
-    padding: 1rem;
+.current-status {
+    background: var(--background);
+    border: 1px solid var(--border);
     border-radius: 8px;
+    padding: 1rem;
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
 }
 
-.current-page-label {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.status-icon {
+    color: var(--secondary);
+    animation: spin-slow 3s linear infinite;
 }
 
-.current-page-url {
-    color: #fff;
-    font-size: 0.875rem;
-    word-break: break-all;
-    font-family: 'Courier New', monospace;
+.status-text {
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+    }
+}
+
+@keyframes move-stripes {
+    0% {
+        background-position: 1rem 0;
+    }
+
+    100% {
+        background-position: 0 0;
+    }
+}
+
+@keyframes spin-slow {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 640px) {
-    .progress-container {
-        padding: 1.5rem;
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
     }
 
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .stat-item {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 1rem;
+    }
+
+    .stat-item:nth-last-child(-n+2) {
+        border-bottom: none;
     }
 }
