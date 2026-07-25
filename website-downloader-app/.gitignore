@@ -1,0 +1,52 @@
+# Wails
+build/bin/
+frontend/dist/
+frontend/node_modules/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+go.work
+
+# Temp and downloads
+temp/
+downloads/
+*.zip
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
