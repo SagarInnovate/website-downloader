@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,21 +19,41 @@ import (
 
 // App struct
 type App struct {
-	ctx         context.Context
-	jobStatuses map[string]*models.JobStatus
-	jobsMutex   sync.RWMutex
+	ctx            context.Context
+	jobStatuses    map[string]*models.JobStatus
+	jobCancellers  map[string]context.CancelFunc
+	downloadHistory []HistoryItem
+	jobsMutex      sync.RWMutex
+}
+
+// HistoryItem represents a download history entry
+type HistoryItem struct {
+	JobID      string    `json:"jobId"`
+	URL        string    `json:"url"`
+	Mode       string    `json:"mode"`
+	Status     string    `json:"status"`
+	ZipPath    string    `json:"zipPath"`
+	StartTime  time.Time `json:"startTime"`
+	EndTime    time.Time `json:"endTime"`
+	Pages      int       `json:"pages"`
+	Assets     int       `json:"assets"`
+	TotalSize  int64     `json:"totalSize"`
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{
-		jobStatuses: make(map[string]*models.JobStatus),
+		jobStatuses:     make(map[string]*models.JobStatus),
+		jobCancellers:   make(map[string]context.CancelFunc),
+		downloadHistory: []HistoryItem{},
 	}
 }
 
 // startup is called when the app starts
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	// Load history from disk
+	a.loadHistory()
 }
 
 // ScrapeRequest represents the scrape request from frontend
@@ -201,6 +222,200 @@ func (a *App) updateJobStatus(jobID string, status *models.JobStatus) {
 func (a *App) broadcastProgress(jobID string, update models.ProgressUpdate) {
 	// Ensure jobID is set in the update
 	update.JobID = jobID
+	
+	// If job completed, add to history
+	if update.Type == "complete" {
+		a.jobsMutex.RLock()
+		status, exists := a.jobStatuses[jobID]
+		a.jobsMutex.RUnlock()
+		
+		if exists {
+			// Get mode from the job (we need to track this)
+			mode := "static" // Default, should be tracked properly
+			a.addToHistory(status, mode)
+		}
+	}
+	
 	// Emit event to frontend
 	wailsruntime.EventsEmit(a.ctx, "progress:"+jobID, update)
+}
+
+// CancelJob cancels a running scraping job
+func (a *App) CancelJob(jobID string) error {
+	a.jobsMutex.Lock()
+	defer a.jobsMutex.Unlock()
+
+	// Get the cancel function
+	cancelFunc, exists := a.jobCancellers[jobID]
+	if !exists {
+		return fmt.Errorf("job not found or already completed")
+	}
+
+	// Cancel the job
+	cancelFunc()
+
+	// Update status
+	if status, ok := a.jobStatuses[jobID]; ok {
+		status.Status = "cancelled"
+		status.Error = "Cancelled by user"
+		endTime := time.Now()
+		status.EndTime = &endTime
+	}
+
+	// Remove canceller
+	delete(a.jobCancellers, jobID)
+
+	// Broadcast cancellation
+	a.broadcastProgress(jobID, models.ProgressUpdate{
+		Type:   "error",
+		JobID:  jobID,
+		Error:  "Download cancelled by user",
+	})
+
+	return nil
+}
+
+// GetHistory returns the download history
+func (a *App) GetHistory() []HistoryItem {
+	a.jobsMutex.RLock()
+	defer a.jobsMutex.RUnlock()
+	
+	// Return a copy to avoid concurrent modification
+	history := make([]HistoryItem, len(a.downloadHistory))
+	copy(history, a.downloadHistory)
+	return history
+}
+
+// ClearHistory clears all download history
+func (a *App) ClearHistory() error {
+	a.jobsMutex.Lock()
+	defer a.jobsMutex.Unlock()
+	
+	a.downloadHistory = []HistoryItem{}
+	return a.saveHistory()
+}
+
+// DeleteHistoryItem removes a specific item from history
+func (a *App) DeleteHistoryItem(jobID string) error {
+	a.jobsMutex.Lock()
+	defer a.jobsMutex.Unlock()
+	
+	for i, item := range a.downloadHistory {
+		if item.JobID == jobID {
+			a.downloadHistory = append(a.downloadHistory[:i], a.downloadHistory[i+1:]...)
+			return a.saveHistory()
+		}
+	}
+	
+	return fmt.Errorf("history item not found")
+}
+
+// OpenFileLocation opens the file explorer at the downloaded file location
+func (a *App) OpenFileLocation(zipPath string) error {
+	// Check if file exists
+	if _, err := os.Stat(zipPath); os.IsNotExist(err) {
+		return fmt.Errorf("file not found")
+	}
+	
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("explorer", "/select,", zipPath)
+	case "darwin":
+		cmd = exec.Command("open", "-R", zipPath)
+	case "linux":
+		// Open the folder containing the file
+		cmd = exec.Command("xdg-open", zipPath)
+	default:
+		return fmt.Errorf("unsupported operating system")
+	}
+	
+	return cmd.Start()
+}
+
+// addToHistory adds a completed job to history
+func (a *App) addToHistory(status *models.JobStatus, mode string) {
+	a.jobsMutex.Lock()
+	defer a.jobsMutex.Unlock()
+	
+	if status.Status != "completed" {
+		return
+	}
+	
+	endTime := time.Now()
+	if status.EndTime != nil {
+		endTime = *status.EndTime
+	}
+	
+	historyItem := HistoryItem{
+		JobID:     status.JobID,
+		URL:       status.URL,
+		Mode:      mode,
+		Status:    status.Status,
+		ZipPath:   status.ZipPath,
+		StartTime: status.StartTime,
+		EndTime:   endTime,
+		Pages:     status.PagesDownloaded,
+		Assets:    status.AssetsDownloaded,
+		TotalSize: status.TotalSize,
+	}
+	
+	// Add to beginning of history (most recent first)
+	a.downloadHistory = append([]HistoryItem{historyItem}, a.downloadHistory...)
+	
+	// Keep only last 100 items
+	if len(a.downloadHistory) > 100 {
+		a.downloadHistory = a.downloadHistory[:100]
+	}
+	
+	// Save to disk
+	a.saveHistory()
+}
+
+// saveHistory saves download history to disk
+func (a *App) saveHistory() error {
+	config, _ := models.LoadConfig("config.json")
+	if config == nil {
+		config = models.DefaultConfig()
+	}
+	
+	// Create history file path
+	historyPath := config.OutputDir + "/history.json"
+	
+	// Marshal history to JSON
+	data, err := json.Marshal(a.downloadHistory)
+	if err != nil {
+		return err
+	}
+	
+	// Write to file
+	return os.WriteFile(historyPath, data, 0644)
+}
+
+// loadHistory loads download history from disk
+func (a *App) loadHistory() {
+	config, _ := models.LoadConfig("config.json")
+	if config == nil {
+		config = models.DefaultConfig()
+	}
+	
+	historyPath := config.OutputDir + "/history.json"
+	
+	// Read file
+	data, err := os.ReadFile(historyPath)
+	if err != nil {
+		// File doesn't exist or can't be read - start with empty history
+		a.downloadHistory = []HistoryItem{}
+		return
+	}
+	
+	// Unmarshal JSON
+	var history []HistoryItem
+	if err := json.Unmarshal(data, &history); err != nil {
+		// Invalid JSON - start with empty history
+		a.downloadHistory = []HistoryItem{}
+		return
+	}
+	
+	a.downloadHistory = history
 }
