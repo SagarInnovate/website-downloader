@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
@@ -146,6 +148,54 @@ func (a *App) GetDownloadPath(jobID string) (string, error) {
 	return status.ZipPath, nil
 }
 
+// SaveAsZip opens a save dialog and copies the ZIP to user-selected location
+func (a *App) SaveAsZip(jobID string) (string, error) {
+	status, err := a.GetJobStatus(jobID)
+	if err != nil {
+		return "", err
+	}
+
+	if status.ZipPath == "" {
+		return "", fmt.Errorf("ZIP file not found")
+	}
+
+	// Check if source file exists
+	if _, err := os.Stat(status.ZipPath); os.IsNotExist(err) {
+		return "", fmt.Errorf("ZIP file no longer exists")
+	}
+
+	// Get filename from path
+	filename := filepath.Base(status.ZipPath)
+
+	// Open save dialog
+	savePath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
+		DefaultFilename: filename,
+		Title:           "Save Website Archive",
+		Filters: []wailsruntime.FileFilter{
+			{
+				DisplayName: "ZIP Archives (*.zip)",
+				Pattern:     "*.zip",
+			},
+		},
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if savePath == "" {
+		return "", fmt.Errorf("save cancelled")
+	}
+
+	// Copy file to selected location
+	err = copyFile(status.ZipPath, savePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to copy file: %w", err)
+	}
+
+	return savePath, nil
+}
+
 // OpenDownloadFolder opens the downloads folder in the system file manager
 func (a *App) OpenDownloadFolder() error {
 	config, _ := models.LoadConfig("config.json")
@@ -175,40 +225,26 @@ func (a *App) OpenDownloadFolder() error {
 	return cmd.Start()
 }
 
-// SelectSaveLocation opens a file dialog to select where to save the downloaded website
-func (a *App) SelectSaveLocation(jobID string) (string, error) {
-	status, err := a.GetJobStatus(jobID)
+// copyFile copies a file from src to dst
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
 	if err != nil {
-		return "", err
+		return err
 	}
+	defer sourceFile.Close()
 
-	if status.ZipPath == "" {
-		return "", fmt.Errorf("ZIP file not found")
-	}
-
-	// Open save dialog
-	savePath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
-		DefaultFilename: "website.zip",
-		Title:           "Save Website Archive",
-		Filters: []wailsruntime.FileFilter{
-			{
-				DisplayName: "ZIP Archives (*.zip)",
-				Pattern:     "*.zip",
-			},
-		},
-	})
-
+	destFile, err := os.Create(dst)
 	if err != nil {
-		return "", err
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return err
 	}
 
-	if savePath == "" {
-		return "", fmt.Errorf("save cancelled")
-	}
-
-	// TODO: Copy file from status.ZipPath to savePath
-	
-	return savePath, nil
+	return destFile.Sync()
 }
 
 // updateJobStatus updates the status of a job

@@ -2,8 +2,11 @@ package scraper
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"time"
 	"website-downloader-app/models"
 	"website-downloader-app/utils"
@@ -101,14 +104,16 @@ func StartJob(
 		// Don't fail the job, just log the error
 	}
 
-	// Create ZIP archive
+	// Create ZIP archive with proper naming
 	utils.LogInfo("Creating ZIP archive...")
 	status.CurrentPage = "Creating ZIP archive..."
 	status.Progress = 95
 	updateStatus(jobID, status)
 	sendProgressUpdate(jobID, "progress", status, "Creating ZIP archive...", broadcastProgress)
 
-	zipPath := filepath.Join(outputDir, jobID+".zip")
+	// Generate filename: domain_timestamp.zip
+	zipFilename := generateZipFilename(url)
+	zipPath := filepath.Join(outputDir, zipFilename)
 	err = CreateZIP(workDir, zipPath)
 	if err != nil {
 		updateJobError(jobID, fmt.Sprintf("Failed to create ZIP: %v", err), updateStatus, broadcastProgress)
@@ -227,4 +232,29 @@ func updateJobError(
 
 	updateStatus(jobID, status)
 	sendProgressUpdate(jobID, "error", status, errorMsg, broadcastProgress)
+}
+
+
+// generateZipFilename creates a filename from URL: domain_timestamp.zip
+func generateZipFilename(urlStr string) string {
+	// Parse URL to get domain
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		// Fallback to timestamp if URL parsing fails
+		return fmt.Sprintf("website_%s.zip", time.Now().Format("20060102_150405"))
+	}
+	
+	// Get domain without www
+	domain := parsedURL.Hostname()
+	domain = strings.TrimPrefix(domain, "www.")
+	
+	// Clean domain for filename (replace dots and special chars)
+	domain = strings.ReplaceAll(domain, ".", "_")
+	domain = regexp.MustCompile(`[^a-zA-Z0-9_-]`).ReplaceAllString(domain, "_")
+	
+	// Create timestamp
+	timestamp := time.Now().Format("20060102_150405")
+	
+	// Return formatted filename
+	return fmt.Sprintf("%s_%s.zip", domain, timestamp)
 }

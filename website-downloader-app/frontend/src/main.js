@@ -1,8 +1,9 @@
 import './style.css';
 import './app.css';
 
-import {StartScrape, GetJobStatus, OpenDownloadFolder, CancelJob, GetHistory, OpenFileLocation, ClearHistory} from '../wailsjs/go/main/App';
+import {StartScrape, GetJobStatus, OpenDownloadFolder, CancelJob, GetHistory, OpenFileLocation, ClearHistory, SaveAsZip} from '../wailsjs/go/main/App';
 import {EventsOn} from '../wailsjs/runtime/runtime';
+import * as runtime from '../wailsjs/runtime/runtime';
 
 let currentJobId = null;
 let downloadHistory = [];
@@ -182,11 +183,13 @@ document.querySelector('#app').innerHTML = `
                     </p>
 
                     <div class="button-group">
-                        <button onclick="openFolder()" class="download-btn">
+                        <button onclick="saveAs()" class="download-btn">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="20" height="20" strokeWidth="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
                             </svg>
-                            Open Downloads
+                            Save As...
                         </button>
 
                         <button onclick="startNew()" class="new-download-btn">
@@ -223,7 +226,11 @@ window.startDownload = async function(event) {
     const mode = document.querySelector('input[name="mode"]:checked').value;
 
     if (!url) {
-        alert('Please enter a URL');
+        await runtime.MessageDialog({
+            Type: 'error',
+            Title: 'Invalid Input',
+            Message: 'Please enter a URL'
+        });
         return;
     }
 
@@ -231,7 +238,11 @@ window.startDownload = async function(event) {
     try {
         new URL(url);
     } catch (e) {
-        alert('Please enter a valid URL (e.g., https://example.com)');
+        await runtime.MessageDialog({
+            Type: 'error',
+            Title: 'Invalid URL',
+            Message: 'Please enter a valid URL (e.g., https://example.com)'
+        });
         return;
     }
 
@@ -311,7 +322,14 @@ function showError(message) {
 window.stopDownload = async function() {
     if (!currentJobId) return;
     
-    if (confirm('Are you sure you want to stop this download?')) {
+    const result = await runtime.MessageDialog({
+        Type: 'question',
+        Title: 'Stop Download',
+        Message: 'Are you sure you want to stop this download?',
+        Buttons: ['Yes', 'No']
+    });
+    
+    if (result === 'Yes') {
         try {
             await CancelJob(currentJobId);
             showError('Download cancelled by user');
@@ -327,7 +345,43 @@ window.openFolder = async function() {
         await OpenDownloadFolder();
     } catch (error) {
         console.error('Error opening folder:', error);
-        alert('Could not open downloads folder');
+        await runtime.MessageDialog({
+            Type: 'error',
+            Title: 'Error',
+            Message: 'Could not open downloads folder'
+        });
+    }
+};
+
+// Save As - let user choose location
+window.saveAs = async function() {
+    if (!currentJobId) {
+        await runtime.MessageDialog({
+            Type: 'error',
+            Title: 'No Download',
+            Message: 'No download available to save'
+        });
+        return;
+    }
+    
+    try {
+        const savePath = await SaveAsZip(currentJobId);
+        if (savePath) {
+            await runtime.MessageDialog({
+                Type: 'info',
+                Title: 'Success',
+                Message: 'File saved successfully!'
+            });
+        }
+    } catch (error) {
+        console.error('Error saving file:', error);
+        if (error && !error.toString().includes('cancelled')) {
+            await runtime.MessageDialog({
+                Type: 'error',
+                Title: 'Save Failed',
+                Message: 'Could not save file: ' + error
+            });
+        }
     }
 };
 
@@ -411,13 +465,24 @@ window.openHistoryFile = async function(zipPath) {
         await OpenFileLocation(zipPath);
     } catch (error) {
         console.error('Error opening file:', error);
-        alert('Could not open file location. File may have been moved or deleted.');
+        await runtime.MessageDialog({
+            Type: 'error',
+            Title: 'File Not Found',
+            Message: 'Could not open file location. File may have been moved or deleted.'
+        });
     }
 };
 
 // Confirm clear history
-window.confirmClearHistory = function() {
-    if (confirm('Are you sure you want to clear all download history?')) {
+window.confirmClearHistory = async function() {
+    const result = await runtime.MessageDialog({
+        Type: 'question',
+        Title: 'Clear History',
+        Message: 'Are you sure you want to clear all download history?',
+        Buttons: ['Yes', 'No']
+    });
+    
+    if (result === 'Yes') {
         clearAllHistory();
     }
 };
@@ -430,7 +495,11 @@ async function clearAllHistory() {
         renderHistory();
     } catch (error) {
         console.error('Error clearing history:', error);
-        alert('Failed to clear history');
+        await runtime.MessageDialog({
+            Type: 'error',
+            Title: 'Error',
+            Message: 'Failed to clear history'
+        });
     }
 }
 
