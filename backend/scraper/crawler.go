@@ -93,8 +93,14 @@ func NewCrawler(startURL string, config *models.Config, workDir string, mode str
 
 // Crawl starts the crawling process
 func (c *Crawler) Crawl(progressCallback func(update models.ProgressUpdate)) error {
-	utils.LogInfo("Starting crawl for: %s", c.baseURL)
+	utils.LogInfo("Starting crawl for: %s (mode: %s)", c.baseURL, c.mode)
 
+	// If browser mode, use SPA-aware crawling
+	if c.mode == "browser" {
+		return c.crawlSPA(progressCallback)
+	}
+
+	// Otherwise, use traditional crawling for static sites
 	depth := 0
 	for len(c.urlQueue) > 0 && len(c.downloadedPages) < c.config.MaxPages {
 		// Get next URL from queue
@@ -127,6 +133,142 @@ func (c *Crawler) Crawl(progressCallback func(update models.ProgressUpdate)) err
 	}
 
 	utils.LogInfo("Crawl complete. Pages: %d, Assets: %d", len(c.downloadedPages), len(c.downloadedAssets))
+	return nil
+}
+
+// crawlSPA handles SPA-specific crawling with route discovery
+func (c *Crawler) crawlSPA(progressCallback func(update models.ProgressUpdate)) error {
+	utils.LogInfo("Starting SPA crawl for: %s", c.baseURL)
+
+	// Create browser crawler (persistent for the entire session)
+	browserCrawler, err := NewBrowserCrawler(c.baseURL, c.config)
+	if err != nil {
+		return fmt.Errorf("failed to initialize browser: %w", err)
+	}
+	defer browserCrawler.Close()
+
+	// Step 1: Discover all routes in the SPA
+	utils.LogInfo("Step 1: Discovering SPA routes...")
+	routes, err := browserCrawler.DiscoverSPARoutes()
+	if err != nil {
+		utils.LogError("Failed to discover routes: %v", err)
+		// Continue with just the base URL
+		routes = []string{"/"}
+	}
+
+	// Add base URL first
+	allURLs := []string{c.baseURL}
+	
+	// Add discovered routes
+	for _, route := range routes {
+		if len(allURLs) >= c.config.MaxPages {
+			break
+		}
+		// Convert route to full URL
+		fullURL := strings.TrimSuffix(c.baseURL, "/") + route
+		allURLs = append(allURLs, fullURL)
+	}
+
+	utils.LogInfo("Step 2: Crawling %d routes...", len(allURLs))
+
+	// Step 2: Process each route sequentially
+	for i, pageURL := range allURLs {
+		if len(c.downloadedPages) >= c.config.MaxPages {
+			break
+		}
+
+		// Skip if already visited
+		if c.isVisited(pageURL) {
+			continue
+		}
+
+		// Mark as visited
+		c.markVisited(pageURL)
+
+		// Send progress update
+		if progressCallback != nil {
+			progress := (i * 100) / len(allURLs)
+			update := c.getProgressUpdate(pageURL)
+			update.Progress = progress
+			progressCallback(update)
+		}
+
+		utils.LogInfo("Processing SPA route %d/%d: %s", i+1, len(allURLs), pageURL)
+
+		// Fetch and process the page using browser
+		err := c.processSPAPage(browserCrawler, pageURL)
+		if err != nil {
+			utils.LogError("Error processing SPA route %s: %v", pageURL, err)
+			continue
+		}
+
+		utils.LogInfo("Completed SPA route: %s", pageURL)
+
+		// Small delay between routes to avoid overwhelming the browser
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	utils.LogInfo("SPA crawl complete. Pages: %d, Assets: %d", len(c.downloadedPages), len(c.downloadedAssets))
+	return nil
+}
+
+// processSPAPage processes a single page in SPA mode
+func (c *Crawler) processSPAPage(browserCrawler *BrowserCrawler, pageURL string) error {
+	var body []byte
+	var err error
+
+	// Extract route from URL for navigation
+	route := strings.TrimPrefix(pageURL, strings.TrimSuffix(c.baseURL, "/"))
+	if route == "" {
+		route = "/"
+	}
+
+	// If this is the first page (root), use FetchPage
+	if route == "/" || pageURL == c.baseURL {
+		body, err = browserCrawler.FetchPage(pageURL)
+	} else {
+		// For other routes, use NavigateAndCapture (more efficient for SPAs)
+		body, err = browserCrawler.NavigateAndCapture(route)
+	}
+
+	if err != nil {
+		return fmt.Errorf("browser fetch failed: %w", err)
+	}
+
+	// Update total size
+	c.mutex.Lock()
+	c.totalSize += int64(len(body))
+	c.downloadedPages = append(c.downloadedPages, pageURL)
+	c.mutex.Unlock()
+
+	// Parse and extract assets from the rendered HTML
+	_, assets, err := c.extractLinksAndAssets(pageURL, body)
+	if err != nil {
+		utils.LogError("Failed to extract assets from %s: %v", pageURL, err)
+	} else {
+		// Add assets to download queue
+		for _, asset := range assets {
+			c.enqueueAsset(asset)
+		}
+		utils.LogInfo("Extracted %d assets from %s", len(assets), pageURL)
+	}
+
+	// Rewrite links to be relative for offline viewing
+	rewrittenBody, err := RewriteLinks(body, c.baseURL, pageURL)
+	if err != nil {
+		utils.LogError("Failed to rewrite links for %s: %v", pageURL, err)
+		// Continue with original body if rewriting fails
+	} else {
+		body = rewrittenBody
+		utils.LogInfo("Rewrote links for %s", pageURL)
+	}
+
+	// Save the file
+	err = SaveFile(c.workDir, pageURL, body, c.baseURL)
+	if err != nil {
+		return fmt.Errorf("failed to save file: %w", err)
+	}
+
 	return nil
 }
 

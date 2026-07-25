@@ -36,9 +36,9 @@ func DefaultConfig() *Config {
 		},
 		TempDir:         "./temp",
 		OutputDir:       "./downloads",
-		UserAgent:       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-		BrowserWaitTime: 3000, // 3 seconds for JS to render
-		BrowserTimeout:  30,   // 30 seconds max per page
+		UserAgent:       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+		BrowserWaitTime: 5000, // 5 seconds for JS to render
+		BrowserTimeout:  60,   // 60 seconds max per page
 	}
 }
 

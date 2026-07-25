@@ -20,6 +20,7 @@ func main() {
 	config.AllowOrigins = []string{
 		"http://localhost:5173",
 		"http://localhost:5174",
+		"http://localhost:5176",
 		"http://localhost:3000",
 	}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
@@ -41,7 +42,7 @@ func main() {
 	})
 
 	utils.LogInfo("Server starting on :8080")
-	
+
 	// Start server
 	if err := router.Run(":8080"); err != nil {
 		utils.LogError("Failed to start server: %v", err)
