@@ -1,253 +1,263 @@
-# Website Downloader Desktop App
+# Website Downloader
 
-A powerful desktop application built with [Wails](https://wails.io/) that downloads entire websites for offline viewing, with special support for Single Page Applications (SPAs).
+A professional desktop application for archiving entire websites for offline use. Built with Wails v2, Go, and modern web technologies.
 
-## Features
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
 
-✨ **Single Executable** - No backend setup required, just download and run  
-🚀 **Fast Static Site Downloads** - Traditional websites download in seconds  
-⚛️ **SPA Support** - Intelligent crawling for React, Vue, Angular apps  
-🎯 **Smart Route Discovery** - Automatically finds all pages in SPAs  
-🌐 **Network Idle Detection** - Waits for complete page rendering  
-💾 **Offline Viewing** - Downloads include all assets and rewritten links  
-🖥️ **Native Desktop Experience** - Works on Windows, macOS, and Linux  
+## 🎯 Features
 
-## Installation
+### Two Download Modes
+- **⚡ Static Fetch**: Lightning-fast downloads for traditional websites (blogs, documentation, static sites)
+- **🌐 Browser Render**: Full JavaScript execution for modern SPAs (React, Vue, Angular applications)
 
-### For Users (Pre-built Binary)
+### Intelligent SPA Support
+- Automatically discovers all routes in single-page applications
+- Waits for network idle before capturing content
+- Handles dynamic content with intelligent waiting strategies
 
-1. Download the latest release for your platform:
-   - **Windows**: `website-downloader-windows-amd64.exe`
-   - **macOS**: `website-downloader-darwin-universal`
-   - **Linux**: `website-downloader-linux-amd64`
+### User-Friendly Interface
+- Native desktop experience (no browser needed)
+- Real-time progress tracking with detailed stats
+- Stop/Cancel downloads at any time
+- Professional sidebar navigation
+- Download history with persistent storage (last 100 downloads)
+- Native OS dialogs (Windows, macOS, Linux)
 
-2. Double-click to run - no installation needed!
+### Professional Output
+- Creates ZIP files with smart naming: `domain_timestamp.zip`
+- Native "Save As..." dialog to choose save location
+- Preserves complete website structure
+- Includes all assets (HTML, CSS, JS, images, fonts)
 
-### For Developers (Build from Source)
+## 📸 Screenshots
 
-#### Prerequisites
+*Professional UI with sidebar navigation, real-time progress tracking, and native feel*
 
-- Go 1.23 or later
-- Node.js 16+ and npm
-- Wails CLI v2.12.0+
+## 🚀 Quick Start
 
-**Install Wails CLI:**
-```bash
-go install github.com/wailsapp/wails/v2/cmd/wails@latest
-```
+### Prerequisites
+- Go 1.18 or higher
+- Node.js 16 or higher
+- Wails CLI v2
 
-#### Build Instructions
+### Installation
 
-1. **Clone the repository:**
-```bash
-git clone <your-repo-url>
-cd website-downloader-app
-```
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd website-downloader-app
+   ```
 
-2. **Install dependencies:**
-```bash
-wails build
-```
+2. **Install Wails CLI** (if not already installed)
+   ```bash
+   go install github.com/wailsapp/wails/v2/cmd/wails@latest
+   ```
 
-This will:
-- Install Go dependencies
-- Install npm dependencies
-- Build the frontend
-- Build the executable
+3. **Run development server**
+   ```bash
+   wails dev
+   ```
 
-3. **Find your executable:**
-- Windows: `build/bin/website-downloader-app.exe`
-- macOS: `build/bin/website-downloader-app.app`
-- Linux: `build/bin/website-downloader-app`
+### Building for Production
 
-## Development
-
-### Run in Development Mode
-
-```bash
-wails dev
-```
-
-This starts the app with:
-- Hot reload for frontend changes
-- Auto-restart for Go code changes  
-- DevTools enabled
-
-### Project Structure
-
-```
-website-downloader-app/
-├── frontend/           # Frontend UI (HTML/CSS/JS)
-│   ├── src/
-│   ├── dist/          # Built frontend (auto-generated)
-│   └── package.json
-├── models/            # Data models
-├── scraper/           # Website scraping logic
-├── utils/             # Utility functions
-├── app.go             # Main app logic (Wails bindings)
-├── main.go            # Entry point
-├── config.json        # Default configuration
-└── wails.json         # Wails project configuration
-```
-
-## Usage
-
-### Basic Usage
-
-1. **Launch the app**
-2. **Enter a URL** (e.g., `https://example.com`)
-3. **Select mode:**
-   - **Static Mode** (faster) - For traditional websites
-   - **Browser Mode** - For SPAs (React, Vue, Angular)
-4. **Click "Download"**
-5. **Wait for completion** - Progress shown in real-time
-6. **Open downloaded files** - Click "Open Folder" or "Save As"
-
-### Download Modes
-
-#### Static Mode (Default)
-- ✅ **Fast** - 10-20x faster than browser mode
-- ✅ **Traditional websites** - Server-rendered HTML
-- ❌ **Not suitable for SPAs** - May miss dynamic content
-
-#### Browser Mode
-- ✅ **Complete SPA support** - React, Vue, Angular, etc.
-- ✅ **Dynamic content** - Waits for JavaScript to load
-- ✅ **Smart route discovery** - Finds all SPA routes automatically
-- ❌ **Slower** - Uses headless Chrome
-
-### Configuration
-
-The app uses `config.json` for settings:
-
-```json
-{
-  "maxPages": 1000,           // Maximum pages to download
-  "requestTimeout": 30,        // HTTP timeout (seconds)
-  "browserWaitTime": 5000,    // Max wait for JS rendering (ms)
-  "browserTimeout": 60,       // Browser page timeout (seconds)
-  "tempDir": "./temp",        // Temporary file directory
-  "outputDir": "./downloads"  // Download output directory
-}
-```
-
-You can modify these settings before building to change defaults.
-
-## Building for Distribution
-
-### Windows
-
+**Windows**
 ```bash
 wails build -platform windows/amd64
 ```
 
-Optional: Create an installer
-```bash
-wails build -platform windows/amd64 -nsis
-```
-
-### macOS
-
+**macOS**
 ```bash
 wails build -platform darwin/universal
 ```
 
-Optional: Code sign (requires Apple Developer account)
-```bash
-wails build -platform darwin/universal -sign
-```
-
-### Linux
-
+**Linux**
 ```bash
 wails build -platform linux/amd64
 ```
 
-### Cross-Platform Build
+The executable will be created in the `build/bin` directory.
 
-```bash
-wails build -platform windows/amd64,darwin/universal,linux/amd64
+## 🛠️ Technology Stack
+
+- **Backend**: Go with Chromedp for browser automation
+- **Frontend**: Vanilla JavaScript + Modern CSS
+- **Framework**: Wails v2 for native desktop apps
+- **Platform**: Cross-platform (Windows, macOS, Linux)
+
+## 📖 Usage
+
+### Basic Workflow
+
+1. **Enter URL**: Type or paste the website URL (e.g., `https://example.com`)
+2. **Choose Mode**:
+   - Select **Static Fetch** for traditional websites
+   - Select **Browser Render** for JavaScript-heavy SPAs
+3. **Start Download**: Click "Start Archiving"
+4. **Monitor Progress**: Watch real-time stats (pages, assets, size)
+5. **Save**: Use "Save As..." to choose where to save the ZIP file
+
+### Download Modes Explained
+
+#### Static Fetch
+Best for:
+- Blogs and news sites
+- Documentation sites
+- Traditional server-rendered websites
+- Static HTML sites
+
+Characteristics:
+- Fastest performance
+- Lower resource usage
+- No JavaScript execution
+
+#### Browser Render
+Best for:
+- Single Page Applications (SPAs)
+- React, Vue, Angular apps
+- Websites with heavy JavaScript
+- Dynamic content loading
+
+Characteristics:
+- Full JavaScript execution
+- Route discovery for SPAs
+- Network idle detection
+- Higher resource usage
+
+### Configuration
+
+Edit `backend/config.json` to customize:
+
+```json
+{
+  "maxPages": 500,
+  "browserWaitTime": 5000,
+  "browserTimeout": 60,
+  "downloadPath": "./downloads"
+}
 ```
 
-## Technical Details
+- `maxPages`: Maximum pages to download per job
+- `browserWaitTime`: Time to wait after page load (ms)
+- `browserTimeout`: Page load timeout (seconds)
+- `downloadPath`: Default save location
 
-### How SPA Crawling Works
+## 🎨 Features Overview
 
-1. **Initial Load** - Opens the base URL in headless Chrome
-2. **Route Discovery** - Analyzes JavaScript and DOM for route patterns
-3. **Sequential Navigation** - Visits each route using History API
-4. **Network Idle Detection** - Waits for all HTTP requests to complete
-5. **Content Capture** - Extracts fully rendered HTML
-6. **Asset Download** - Downloads CSS, JS, images, fonts
-7. **Link Rewriting** - Makes links relative for offline viewing
-8. **ZIP Creation** - Packages everything into a single archive
+### Home View
+- Clean, professional interface
+- Quick URL input
+- Mode selection (Static/Browser)
+- Real-time progress tracking
 
-### Supported Frameworks
+### History View
+- View all past downloads
+- Quick access to saved files
+- Metadata (pages, assets, size, date)
+- Open file location with one click
 
-- ✅ React (React Router)
-- ✅ Vue (Vue Router)
-- ✅ Angular (Angular Router)
-- ✅ Next.js (static exports)
-- ✅ Svelte/SvelteKit
-- ✅ Any client-side routing framework
+### Settings View
+- Configure download limits
+- Adjust browser timing
+- Manage storage location
+- All settings in one place
 
-## Troubleshooting
+### About View
+- Version information
+- Feature list
+- Technology stack
+- Developer info
 
-### Chrome/Chromium Required
+## 🔧 Development
 
-The browser mode requires Chrome/Chromium to be installed:
-- **Windows**: Usually pre-installed or download from google.com/chrome
-- **macOS**: Download from google.com/chrome
-- **Linux**: `sudo apt install chromium-browser` or `google-chrome-stable`
+### Project Structure
+```
+website-downloader-app/
+├── backend/
+│   ├── handlers/          # HTTP & WebSocket handlers
+│   ├── models/           # Data models
+│   ├── scraper/          # Core scraping logic
+│   │   ├── crawler.go
+│   │   ├── browser_crawler.go
+│   │   ├── downloader.go
+│   │   ├── link_rewriter.go
+│   │   └── zipper.go
+│   ├── downloads/        # Downloaded ZIP files
+│   ├── temp/             # Temporary scraping files
+│   └── main.go          # Backend entry point
+├── frontend/
+│   ├── src/
+│   │   ├── main.js      # Frontend logic
+│   │   ├── template.js  # HTML templates
+│   │   ├── app.css      # Main styles
+│   │   ├── sidebar.css  # Sidebar styles
+│   │   └── style.css    # Base styles
+│   └── index.html       # Entry point
+├── wails.json           # Wails configuration
+└── go.mod              # Go dependencies
+```
 
-### "Job not found" Error
+### Key Backend Functions
 
-This means the download hasn't started. Possible causes:
-- Invalid URL
-- Network connectivity issues
-- Chrome/Chromium not found (browser mode only)
+- `StartScrape(url, mode)` - Initiates download
+- `CancelJob(jobID)` - Stops active download
+- `SaveAsZip(jobID)` - Opens native save dialog
+- `GetHistory()` - Returns download history
+- `OpenFileLocation(path)` - Opens file in explorer
 
-### Incomplete Downloads
+### Frontend Architecture
 
-If downloads are incomplete:
-1. Increase `browserWaitTime` in config.json
-2. Increase `browserTimeout` for slow sites
-3. Check if the site requires authentication
-4. Try browser mode if using static mode
+- **View Management**: Sidebar navigation with Home, History, Settings, About
+- **Real-time Updates**: WebSocket progress tracking
+- **Native Dialogs**: Windows/macOS/Linux system dialogs
+- **Responsive**: Smooth scrolling and native feel
 
-### App Won't Start
+## 🐛 Troubleshooting
 
-- Ensure all dependencies are installed: `go mod tidy`
-- Rebuild: `wails build`
-- Check logs in console output
+### App won't start
+- Ensure Go and Node.js are installed
+- Run `go mod tidy` in the backend directory
+- Run `npm install` in the frontend directory
 
-## Contributing
+### Download fails
+- Check internet connection
+- Verify URL is accessible
+- Try different mode (Static vs Browser)
+- Check console for error messages
 
-Contributions are welcome! Please:
+### Browser mode not working
+- Ensure Chromium/Chrome is installed
+- Check browser timeout settings
+- Increase wait time for slow sites
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+## 📝 License
 
-## License
+MIT License - feel free to use this project for personal or commercial purposes.
 
-[Specify your license here]
+## 👨‍💻 Developer
 
-## Credits
+Created by **sagarinnovate**
 
-Built with:
-- [Wails](https://wails.io/) - Go + Web framework
-- [chromedp](https://github.com/chromedp/chromedp) - Chrome DevTools Protocol
-- Modern web technologies
+Contributions and feedback are welcome! Open an issue or submit a pull request.
 
-## Support
+## 🌟 Acknowledgments
 
-For issues, questions, or feature requests:
-- Open an issue on GitHub
-- Check existing documentation
-- Review troubleshooting section
+- Built with [Wails](https://wails.io/) - Amazing Go + Web framework
+- Powered by [Chromedp](https://github.com/chromedp/chromedp) - Headless Chrome automation
+- Inspired by the need for professional website archiving tools
+
+## 🔮 Future Enhancements
+
+Potential features for future releases:
+- [ ] Download queue management
+- [ ] Scheduled downloads
+- [ ] Export/Import history
+- [ ] Advanced filtering options
+- [ ] Custom user agents
+- [ ] Proxy support
+- [ ] Cloud storage integration
+- [ ] Multi-language support
 
 ---
 

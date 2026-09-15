@@ -607,29 +607,34 @@
 }
 
 .history-list {
-    max-height: 400px;
+    max-height: 500px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    -webkit-overflow-scrolling: touch;
 }
 
 .history-list::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 .history-list::-webkit-scrollbar-track {
-    background: var(--background);
-    border-radius: 10px;
+    background: transparent;
 }
 
 .history-list::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 10px;
+    background: #cbd5e1;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
 }
 
 .history-list::-webkit-scrollbar-thumb:hover {
-    background: var(--text-tertiary);
+    background: #94a3b8;
+    border: 2px solid transparent;
+    background-clip: padding-box;
 }
 
 .history-item {

@@ -1,52 +1,58 @@
-# Wails
-build/bin/
-frontend/dist/
-frontend/node_modules/
-
-# Go
+# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+
+# Test binary, built with `go test -c`
 *.test
+
+# Output of the go coverage tool
 *.out
-vendor/
+
+# Wails build directory
+build/
+
+# Go workspace file
 go.work
 
-# Temp and downloads
-temp/
+# Node modules
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Download and temp files
+backend/downloads/*.zip
+backend/temp/*
 downloads/
-*.zip
+
+# Keep download history but ignore the ZIPs
+!backend/downloads/history.json
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
-.DS_Store
 
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.pnpm-debug.log
+# Logs
+*.log
 
 # Environment
 .env
 .env.local
-.env.*.local
 
-# Build artifacts
-*.log
-*.pid
-*.seed
-*.pid.lock
+# Frontend build artifacts
+frontend/dist/
+frontend/.vite/
+frontend/wailsjs/
 
-# OS
-Thumbs.db
-ehthumbs.db
-Desktop.ini
+# Go vendor
+vendor/
