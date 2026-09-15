@@ -2,9 +2,11 @@
 
 A professional desktop application for archiving entire websites for offline use. Built with Wails v2, Go, and modern web technologies.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
+[![Version](https://img.shields.io/github/v/release/SagarInnovate/website-downloader)](https://github.com/SagarInnovate/website-downloader/releases)
+[![Downloads](https://img.shields.io/github/downloads/SagarInnovate/website-downloader/total)](https://github.com/SagarInnovate/website-downloader/releases)
+[![Stars](https://img.shields.io/github/stars/SagarInnovate/website-downloader)](https://github.com/SagarInnovate/website-downloader/stargazers)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/SagarInnovate/website-downloader)
 
 ## 🎯 Features
 
@@ -46,7 +48,7 @@ A professional desktop application for archiving entire websites for offline use
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/SagarInnovate/website-downloader.git
    cd website-downloader-app
    ```
 
@@ -243,6 +245,10 @@ MIT License - feel free to use this project for personal or commercial purposes.
 ## 👨‍💻 Developer
 
 Created by **sagarinnovate**
+
+- 🌐 GitHub: [@SagarInnovate](https://github.com/SagarInnovate)
+- 📦 Repository: [website-downloader](https://github.com/SagarInnovate/website-downloader)
+- ⭐ Give it a star if you find it useful!
 
 Contributions and feedback are welcome! Open an issue or submit a pull request.
 
