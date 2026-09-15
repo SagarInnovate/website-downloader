@@ -145,6 +145,11 @@ Edit `backend/config.json` to customize:
 
 ## 🎨 Features Overview
 
+### Professional Logo & Branding
+- Custom-designed logo integrated throughout the app
+- Appears in sidebar, about section, and app icon
+- Consistent branding across all views
+
 ### Home View
 - Clean, professional interface
 - Quick URL input
