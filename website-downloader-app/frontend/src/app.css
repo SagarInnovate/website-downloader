@@ -261,6 +261,34 @@
     cursor: not-allowed;
 }
 
+/* Disclaimer Message */
+.disclaimer-message {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    color: #92400e;
+}
+
+.disclaimer-message svg {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    color: #d97706;
+}
+
+.disclaimer-text {
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.disclaimer-text strong {
+    font-weight: 600;
+    color: #78350f;
+}
+
 .spinner {
     width: 20px;
     height: 20px;

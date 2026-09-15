@@ -109,19 +109,20 @@
     width: 100%;
     padding: 0.75rem 1rem;
     margin-bottom: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #24292e;
     color: white;
     text-decoration: none;
-    border-radius: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 500;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .github-star-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    background: #2f363d;
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 .github-star-btn svg {
