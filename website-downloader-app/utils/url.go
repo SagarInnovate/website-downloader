@@ -129,6 +129,15 @@ func BuildLocalPath(baseURL, targetURL string) (string, error) {
 		urlPath = "/index.html"
 	} else if strings.HasSuffix(urlPath, "/") {
 		urlPath += "index.html"
+	} else {
+		// If the path doesn't have an extension, add .html
+		// This handles URLs like /about, /contact, /services
+		ext := path.Ext(urlPath)
+		if ext == "" {
+			// Check if it looks like a file or directory
+			// If last segment has no dot, treat as HTML page
+			urlPath += ".html"
+		}
 	}
 
 	localPath = path.Join(localPath, urlPath)
